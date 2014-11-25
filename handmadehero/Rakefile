@@ -1,0 +1,37 @@
+task :default => :build
+
+desc 'Build the project'
+task :build => [:setup]
+
+desc 'Debug in visual studio'
+task :debug => [:build]
+
+desc 'Run the program'
+task :run => [:build]
+
+@vcvarsall_path = 'C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat'
+@devenv_path = 'C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\devenv.exe'
+
+def setup_varsall
+	"\"#{@vcvarsall_path}\" x64 &&"
+end
+
+task :setup do
+	Dir.mkdir('../build') unless Dir.exist?('../build')
+end
+
+task :build do
+	puts "Building the project, yes the WHOLE project."
+
+	Dir.chdir('../build') do
+		puts `#{setup_varsall} cl /Zi ../handmadehero/code/win32_handmade.cpp user32.lib gdi32.lib`
+	end
+end
+
+task :debug do
+	`"#{@devenv_path}" ../build/win32_handmade.exe`
+end
+
+task :run do
+	`../build/win32_handmade.exe`
+end
