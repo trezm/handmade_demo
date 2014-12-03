@@ -24,7 +24,7 @@ task :build do
 	puts "Building the project, yes the WHOLE project."
 
 	Dir.chdir('../build') do
-		puts `#{setup_varsall} cl /Zi ../handmadehero/code/win32_handmade.cpp user32.lib gdi32.lib`
+		puts `#{setup_varsall} cl /FC /Zi ../handmadehero/code/win32_handmade.cpp user32.lib gdi32.lib`
 	end
 end
 
