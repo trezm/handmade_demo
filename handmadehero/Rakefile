@@ -3,17 +3,36 @@ task :default => :build
 desc 'Build the project'
 task :build => [:setup]
 
+desc 'Build the project in x86'
+task :build32 => [:setup]
+
 desc 'Debug in visual studio'
 task :debug => [:build]
 
 desc 'Run the program'
-task :run => [:build]
+task :run => [:build, :run_win32]
+
+desc 'Run the program in x86'
+task :run32 => [:build32, :run_win32]
 
 @vcvarsall_path = 'C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat'
 @devenv_path = 'C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\devenv.exe'
+@options = '-MT -nologo -Oi -Gm- -GR- -EHa- -FC -Z7 -Fmwin32_handmade.map -W4 -wd4201 -wd4100 -wd4189 -DHANDMADE_INTERNAL=1 -DHANDMADE_SLOW=1 -DHANDMADE_WIN32=1'
 
-def setup_varsall
+def create_linker_options(extra_options="")
+	"-link #{extra_options} user32.lib gdi32.lib winmm.lib"
+end
+
+@linker_options32 = create_linker_options("-subsystem:windows,5.1")
+@linker_options64 = create_linker_options()
+@entry_point = '../handmadehero/code/win32_handmade.cpp'
+
+def setup_varsall_64
 	"\"#{@vcvarsall_path}\" x64 &&"
+end
+
+def setup_varsall_32
+	"\"#{@vcvarsall_path}\" x86 &&"
 end
 
 task :setup do
@@ -21,10 +40,14 @@ task :setup do
 end
 
 task :build do
-	puts "Building the project, yes the WHOLE project."
-
 	Dir.chdir('../build') do
-		puts `#{setup_varsall} cl /FC /Zi ../handmadehero/code/win32_handmade.cpp user32.lib gdi32.lib`
+		puts `#{setup_varsall_64} cl #{@options} #{@entry_point} #{@linker_options64}`
+	end
+end
+
+task :build32 do
+	Dir.chdir('../build') do
+		puts `#{setup_varsall_32} cl #{@options} #{@entry_point} #{@linker_options32}`
 	end
 end
 
@@ -32,6 +55,6 @@ task :debug do
 	`"#{@devenv_path}" ../build/win32_handmade.exe`
 end
 
-task :run do
+task :run_win32 do
 	`../build/win32_handmade.exe`
 end
